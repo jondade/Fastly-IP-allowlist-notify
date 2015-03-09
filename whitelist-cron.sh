@@ -38,9 +38,83 @@ EMAIL_RECIPIENTS=""
 # editors own risk. No support is offerec
 #
 
+function install {  
+  # Let's make sure required commands can be found is there.
+  if ! which -s mail;
+  then
+    echo "Mail command not found. Cannot continue." >&2
+    exit 5
+  elif ! which -s curl; then
+    echo "Curl command not found. Cannot continue." >&2
+    exit 6
+  fi
 
-while getopts "irh"; do
-  case $opt in
+  # Duplicate this script into /sbin/fastly-ips.sh and set permissions
+  cat "$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")" > /sbin/fastly-ips.sh
+  chown 0:0 chmod 700 /sbin/fastly-ips.sh
+
+  # Set up some vars from random to make sure the Fastly API is not smashed all at once.
+  # by default this runs once a week.
+  minute=$(getnum 60)
+  hour=$(getnum 24)
+  day=$(getnum 7)
+
+  echo "$minute $hour * * $day /sbin/fastly-ips.sh -r" >> /etc/crontab
+}
+
+function getnum () {
+  out=$RANDOM
+  let "out %= $1"
+  echo $out
+}
+
+function run {
+  # We don't need to keep the actual data. Lets save disk space and just keep MD5s.
+  OLD_MD5=`cat "$CURRENT_IPS_FILE"`
+  NEW_DATA=`curl https://api.fastly.com/public-ip-list -H "Fastly-Key:$API_KEY"`
+
+  NEW_MD5=$(echo $NEW_DATA | md5sum)
+
+  if [ "$OLD_MD5" == "$NEW_MD5" ]; then
+    echo "No ip changes."
+    exit 0;
+  else
+    UPDATED_MESSAGE=$(cat <<-EOM
+      The fastly whitelist checksum did not match in the latest check. An update to the whitelisting
+      rules may be required.
+
+      The lastest json data is:
+
+      $NEW_DATA
+EOM
+)
+    echo "$UPDATED_MESSAGE" | mail -E -s 'Fastly whitelist updated' "$EMAIL_RECIPIENTS"
+    exit $?
+  fi
+}
+
+function showhelp {
+  cat <<OEM
+Usage: $(basename "$(test -L "$0" && readlink "$0" || echo "$0")") <args>
+  Possible arguments are:
+    i     install this script.
+    r     run the script to verify the MD5 / email recipients of an update.
+    h     show this message
+OEM
+
+}
+
+#
+# Real script starts here
+#
+if [ "$#" -lt 1 ]; then
+  echo "Not enough arguments."
+  showhelp
+  exit 1
+fi
+
+while getopts "irh" opt; do
+  case "$opt" in
     i)
       install
       ;;
@@ -49,20 +123,8 @@ while getopts "irh"; do
       ;;
     h)
       showhelp
+      exit 0
       ;;
   esac
 done
 
-# Let's make sure mail is there.
-if ! which -s mail;
-then
-  echo "Mail command not found. Cannot continue." >&2
-  exit 5
-elif ! which -s curl; then
-  echo "Curl command not found. Cannot continue." >&2
-  exit 6
-fi
-
-OLD_MD5=`cat "$CURRENT_IPS_FILE"
-
-NEW_DATA=`curl https://api.fastly.com/public-ip-list -H "Fastly-Key:$API_KEY"`
