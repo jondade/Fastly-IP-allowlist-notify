@@ -47,6 +47,9 @@ function install {
   elif ! which -s curl; then
     echo "Curl command not found. Cannot continue." >&2
     exit 6
+  elif ! which -s md5sum -a ! which -s md5;
+    echo "No MD5 tool found. Please install one and retry." >&2
+    exit 7
   fi
 
   # Duplicate this script into /sbin/fastly-ips.sh and set permissions
@@ -69,6 +72,8 @@ function getnum () {
 }
 
 function run {
+
+
   # We don't need to keep the actual data. Lets save disk space and just keep MD5s.
   OLD_MD5=`cat "$CURRENT_IPS_FILE"`
   NEW_DATA=`curl https://api.fastly.com/public-ip-list -H "Fastly-Key:$API_KEY"`
@@ -127,4 +132,6 @@ while getopts "irh" opt; do
       ;;
   esac
 done
+
+# If we get here something went wrong....
 
