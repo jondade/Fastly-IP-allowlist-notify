@@ -11,6 +11,12 @@
 # that this is in clear text so this file should be accessible to
 # as few people as possible to maintain security
 #
+# If you have any bugs or issues with this script you can find assitance
+# in the fastly community forum at https://community.fastly.com/
+#
+# If you would like to submit a pull request or patch, please do so at my
+# github repository: http://github.com/jondade/IP-whitelist-cron
+#
 # License: MIT
 # Use of this script is entirely at the user's own risk. No warranty
 # is offered or implied.
@@ -35,21 +41,29 @@ EMAIL_RECIPIENTS=""
 #     4: Make notification modular / plugable for alternate methods
 #
 # No user serviceable parts after this point. Any changes are at the
-# editors own risk. No support is offerec
+# editors own risk. No support is offered.
 #
 
-function install {  
+
+# This will install the script to the /sbin directory for running.
+function install {
+  echo "Please enter your Fastly API key"
+  read KEY
+  echo "Please enter your list of email recipients. Please separate them with a ';' and use no spaces"
+  read ADDRESSES
   # Let's make sure required commands can be found is there.
-  if ! which -s mail;
-  then
+  if ! which -s mail; then
     echo "Mail command not found. Cannot continue." >&2
     exit 5
   elif ! which -s curl; then
     echo "Curl command not found. Cannot continue." >&2
     exit 6
-  elif ! which -s md5sum -a ! which -s md5;
+  elif ! which -s md5sum -a ! which -s md5; then
     echo "No MD5 tool found. Please install one and retry." >&2
     exit 7
+  elif -z $KEY -o -z $ADDRESSES; then
+    echo "Key or email recipients was not valid. Please try again."
+    exit 8
   fi
 
   # Duplicate this script into /sbin/fastly-ips.sh and set permissions
@@ -65,6 +79,10 @@ function install {
   echo "$minute $hour * * $day /sbin/fastly-ips.sh -r" >> /etc/crontab
 }
 
+function fetchIPData () {
+  curl https://api.fastly.com/public-ip-list -H "Fastly-Key:$API_KEY"
+}
+
 function getnum () {
   out=$RANDOM
   let "out %= $1"
@@ -73,10 +91,9 @@ function getnum () {
 
 function run {
 
-
   # We don't need to keep the actual data. Lets save disk space and just keep MD5s.
   OLD_MD5=`cat "$CURRENT_IPS_FILE"`
-  NEW_DATA=`curl https://api.fastly.com/public-ip-list -H "Fastly-Key:$API_KEY"`
+  NEW_DATA=$(fetchIPData)
 
   NEW_MD5=$(echo $NEW_DATA | md5sum)
 
@@ -104,7 +121,8 @@ Usage: $(basename "$(test -L "$0" && readlink "$0" || echo "$0")") <args>
   Possible arguments are:
     i     install this script.
     r     run the script to verify the MD5 / email recipients of an update.
-    h     show this message
+    h     show this message 
+  N.B. This is a simple bash script, please read it for bug/pull request details.
 OEM
 
 }
@@ -135,3 +153,4 @@ done
 
 # If we get here something went wrong....
 
+# Insert non-obligatory quote
