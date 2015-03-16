@@ -4,6 +4,12 @@
 # A script which can run as a cron job and notifies if the list
 # of Fastly IPs has changed compared to the previous known list.
 #
+# This requires your system to have:
+#    curl - a command line web client
+#    md5(sum) - a command for calculating and checking sums of files
+#    mail(x) - a command line mail/smtp client
+#
+#
 # Stores the list of 'current' IPs in CURRENT_IPS_FILE and uses diff
 # to see if this has changed.
 #
@@ -52,18 +58,21 @@ function install {
   echo "Please enter your list of email recipients. Please separate them with a ';' and use no spaces"
   read ADDRESSES
   # Let's make sure required commands can be found is there.
-  if ! which -s mail; then
+  if ! find_command mail; then
     echo "Mail command not found. Cannot continue." >&2
     exit 5
-  elif ! which -s curl; then
+  elif ! find_command curl; then
     echo "Curl command not found. Cannot continue." >&2
     exit 6
-  elif ! which -s md5sum -a ! which -s md5; then
+  elif ! find_command md5sum -a ! which -s md5; then
     echo "No MD5 tool found. Please install one and retry." >&2
     exit 7
   elif -z $KEY -o -z $ADDRESSES; then
     echo "Key or email recipients was not valid. Please try again."
     exit 8
+  elif ! find_command sed; then
+    echo "Could not find sed command. Cannot continue. Please install sed or manually install this script." >&2
+    exit 9
   fi
 
   # Duplicate this script into /sbin/fastly-ips.sh and set permissions
@@ -76,7 +85,13 @@ function install {
   hour=$(getnum 24)
   day=$(getnum 7)
 
+  # Need to check the key for validity (?) and
+  # ensure the addresses are valid.
+
+  sed -i -e "s/API_KEY=\""
   echo "$minute $hour * * $day /sbin/fastly-ips.sh -r" >> /etc/crontab
+
+  fetchIPData | md5sum > $CURRENT_IPS_FILE
 }
 
 function fetchIPData () {
@@ -125,6 +140,10 @@ Usage: $(basename "$(test -L "$0" && readlink "$0" || echo "$0")") <args>
   N.B. This is a simple bash script, please read it for bug/pull request details.
 OEM
 
+}
+
+function find_command () {
+  command -v $1 >/dev/null
 }
 
 #
