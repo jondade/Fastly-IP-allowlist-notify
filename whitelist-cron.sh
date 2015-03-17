@@ -29,8 +29,6 @@
 
 # Configuration variables.
 # Update these as necessary.
-API_URL="https://api.fastly.com/list-all-ips"
-CURRENT_IPS_FILE="/var/spool/Fastly-IPs"
 API_KEY=""
 EMAIL_RECIPIENTS=""
 
@@ -92,7 +90,10 @@ function install {
   sed -i -e "s/API_KEY=\"\"/API_KEY=\"$KEY\"/" /sbin/fastly-ips.sh
   echo "$minute $hour * * $day /sbin/fastly-ips.sh -r" >> /etc/crontab
 
-  fetchIPData | md5sum > $CURRENT_IPS_FILE
+  mkdir -p /var/spool/fastly
+
+  DATA=fetchIPData
+  echo "$DATA" | md5sum > $CURRENT_IPS_FILE
 }
 
 function fetchIPData () {
@@ -164,6 +165,11 @@ function read_addresses () {
 #
 # Real script starts here
 #
+
+# Static variables for reuse later.
+API_URL="https://api.fastly.com/list-all-ips"
+CURRENT_IPS_FILE="/var/spool/fastly/Fastly-IPs"
+
 if [ "$#" -lt 1 ]; then
   echo "Not enough arguments."
   showhelp
