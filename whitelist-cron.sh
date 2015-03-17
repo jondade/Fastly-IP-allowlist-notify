@@ -87,17 +87,33 @@ function install {
   # Need to check the key for validity (?) and
   # ensure the addresses are valid.
 
-  sed -i -e "s/API_KEY=\"\"/API_KEY=\"$KEY\"/" /sbin/fastly-ips.sh
+  sed -i -e "s/API_KEY=\"\"/API_KEY=\"$KEY\"/" -e "s/EMAIL_RECIPIENTS=\"\"/EMAIL_RECIPIENTS=\"$ADDRESSES\"/" /sbin/fastly-ips.sh
   echo "$minute $hour * * $day /sbin/fastly-ips.sh -r" >> /etc/crontab
 
   mkdir -p /var/spool/fastly
 
   DATA=fetchIPData
   echo "$DATA" | md5sum > $CURRENT_IPS_FILE
+
+  echo "Initial data for IP whitelisting:"
+  echo "$DATA"
+  echo
+  echo "Mailing recipients first data to test."
+
+  MESSAGE=$(cat <<-EOM
+      The fastly whitelist IP json data are:
+
+      $DATA
+
+      Please ensure the firewalls allow these IPs.
+)
+
+  echo "$MESSAGE" | mail -E -s 'Fastly whitelist intial set' "$ADDRESSES"
+
 }
 
 function fetchIPData () {
-  curl https://api.fastly.com/public-ip-list -H "Fastly-Key:$API_KEY"
+  curl -s https://api.fastly.com/public-ip-list -H "Fastly-Key:$API_KEY"
 }
 
 function getnum () {
