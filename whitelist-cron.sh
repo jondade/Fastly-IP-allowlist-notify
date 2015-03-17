@@ -54,7 +54,7 @@ function install {
   echo "Please enter your Fastly API key"
   read KEY
   echo "Please enter your list of email recipients. One per line. Blank line to finish."
-  read ADDRESSES
+  ADDRESSES=read_addresses
   # Let's make sure required commands can be found is there.
   if ! find_command mail; then
     echo "Mail command not found. Cannot continue." >&2
