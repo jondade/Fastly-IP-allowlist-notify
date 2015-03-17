@@ -55,7 +55,7 @@ EMAIL_RECIPIENTS=""
 function install {
   echo "Please enter your Fastly API key"
   read KEY
-  echo "Please enter your list of email recipients. Please separate them with a ';' and use no spaces"
+  echo "Please enter your list of email recipients. One per line. Blank line to finish."
   read ADDRESSES
   # Let's make sure required commands can be found is there.
   if ! find_command mail; then
@@ -77,7 +77,8 @@ function install {
 
   # Duplicate this script into /sbin/fastly-ips.sh and set permissions
   cat "$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")" > /sbin/fastly-ips.sh
-  chown 0:0 chmod 700 /sbin/fastly-ips.sh
+  chown 0:0 /sbin/fastly-ips.sh
+  chmod 700 /sbin/fastly-ips.sh
 
   # Set up some vars from random to make sure the Fastly API is not smashed all at once.
   # by default this runs once a week.
@@ -105,7 +106,6 @@ function getnum () {
 }
 
 function run {
-
   # We don't need to keep the actual data. Lets save disk space and just keep MD5s.
   OLD_MD5=`cat "$CURRENT_IPS_FILE"`
   NEW_DATA=$(fetchIPData)
@@ -144,6 +144,21 @@ OEM
 
 function find_command () {
   command -v $1 >/dev/null
+}
+
+function read_addresses () {
+  loop="true"
+  read email
+  list="$email"
+  while ( "$loop" == "true" ); do
+    read email
+    if [ "$email" == "" ]; then
+      loop="false";
+    else
+      list="$list $email"
+    fi
+  done
+  echo "$list"
 }
 
 #
