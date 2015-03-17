@@ -67,7 +67,7 @@ function install {
   elif ! find_command md5sum -a ! which -s md5; then
     echo "No MD5 tool found. Please install one and retry." >&2
     exit 7
-  elif -z $KEY -o -z $ADDRESSES; then
+  elif [ -z $KEY -o -z $ADDRESSES ]; then
     echo "Key or email recipients was not valid. Please try again."
     exit 8
   elif ! find_command sed; then
@@ -88,7 +88,7 @@ function install {
   # Need to check the key for validity (?) and
   # ensure the addresses are valid.
 
-  sed -i -e "s/API_KEY=\""
+  sed -i -e "s/API_KEY=\"\"/API_KEY=\"$KEY\"/" /sbin/fastly-ips.sh
   echo "$minute $hour * * $day /sbin/fastly-ips.sh -r" >> /etc/crontab
 
   fetchIPData | md5sum > $CURRENT_IPS_FILE
