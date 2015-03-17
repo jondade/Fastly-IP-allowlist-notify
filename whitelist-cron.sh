@@ -106,6 +106,7 @@ function install {
       $DATA
 
       Please ensure the firewalls allow these IPs.
+EOM
 )
 
   echo "$MESSAGE" | mail -E -s 'Fastly whitelist intial set' "$ADDRESSES"
