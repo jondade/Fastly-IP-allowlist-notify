@@ -65,7 +65,7 @@ function install {
   elif ! find_command md5sum -a ! which -s md5; then
     echo "No MD5 tool found. Please install one and retry." >&2
     exit 7
-  elif [ -z $KEY -o -z $ADDRESSES ]; then
+  elif [ -z "$KEY" -o -z "$ADDRESSES" ]; then
     echo "Key or email recipients was not valid. Please try again."
     exit 8
   elif ! find_command sed; then
