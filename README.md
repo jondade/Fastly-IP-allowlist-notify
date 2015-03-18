@@ -4,7 +4,7 @@
 
 This script is a cron script which keeps an MD5 of the last / latest list of IPs that Fastly uses.
 It prediodically will pull a new list and check the MD5 against the stored one. If it has changed, 
-it will mail out to a list of users.
+it will mail out to a .
 
 ## Requirements
 
@@ -12,6 +12,7 @@ it will mail out to a list of users.
 
 * Curl - A command line web client [http://curl.haxx.se/](http://curl.haxx.se/)
 * mail(x) - A command line tool for smtp/mail interactions.
+* /etc/mail.rc - This needs to be configured to successfully send email.
 
 ### Fastly Requirements
 
