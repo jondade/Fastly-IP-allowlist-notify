@@ -95,7 +95,8 @@ function install {
   fi
 
   DATA=$(fetchIPData)
-  echo "$DATA" | md5sum > $CURRENT_IPS_FILE
+  echo "$DATA" | md5sum > $CURRENT_IP_MD5
+  echo "$DATA" > $CURRENT_IP_DATA
 
   echo "Initial data for IP whitelisting:"
   echo "$DATA"
@@ -125,6 +126,10 @@ function getnum () {
   echo $out
 }
 
+function trim_sum_data () {
+  echo $1 | sed -e 's/^\([A-Za-z0-9]\+\)\s.*/\1/' | echo
+}
+
 function run {
   # We don't need to keep the actual data. Lets save disk space and just keep MD5s.
   OLD_MD5=`cat "$CURRENT_IPS_FILE"`
@@ -132,11 +137,12 @@ function run {
 
   NEW_MD5=$(echo $NEW_DATA | md5sum)
 
-  if [ "$OLD_MD5" == "$NEW_MD5" ]; then
+  if [ "$(trim_sum_data($OLD_MD5))" == "$(trim_sum_data($NEW_MD5))" ]; then
     echo "No ip changes."
     exit 0;
   else
-    echo $NEW_MD5 > $CURRENT_IPS_FILE
+    echo $NEW_MD5 > $CURRENT_IP_MD5
+    echo $NEW_DATA > $CURRENT_IP_DATA
     UPDATED_MESSAGE=$(cat <<-EOM
       The fastly whitelist checksum did not match in the latest check. An update to the whitelisting
       rules may be required.
@@ -188,7 +194,8 @@ function read_addresses () {
 
 # Static variables for reuse later.
 API_URL="https://api.fastly.com/list-all-ips"
-CURRENT_IPS_FILE="/var/spool/fastly/Fastly-IPs"
+CURRENT_IP_MD5="/var/spool/fastly/fastly-IP.md5"
+CURRENT_IP_DATA="/var/spool/fastly/fastly-IP.json"
 
 if [ "$#" -lt 1 ]; then
   echo "Not enough arguments."
