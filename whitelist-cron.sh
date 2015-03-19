@@ -90,7 +90,9 @@ function install {
   sed -i -e "s/API_KEY=\"\"/API_KEY=\"$KEY\"/" -e "s/EMAIL_RECIPIENTS=\"\"/EMAIL_RECIPIENTS=\"$ADDRESSES\"/" /sbin/fastly-ips.sh
   echo "$minute $hour * * $day /sbin/fastly-ips.sh -r" >> /etc/crontab
 
-  mkdir -p /var/spool/fastly
+  if [ ! -e /var/spool/fastly ]; then
+    mkdir -p /var/spool/fastly
+  fi
 
   DATA=fetchIPData
   echo "$DATA" | md5sum > $CURRENT_IPS_FILE
@@ -134,6 +136,7 @@ function run {
     echo "No ip changes."
     exit 0;
   else
+    echo $NEW_MD5 > $CURRENT_IPS_FILE
     UPDATED_MESSAGE=$(cat <<-EOM
       The fastly whitelist checksum did not match in the latest check. An update to the whitelisting
       rules may be required.
