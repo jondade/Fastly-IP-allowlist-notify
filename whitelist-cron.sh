@@ -94,6 +94,7 @@ function install {
     mkdir -p /var/spool/fastly
   fi
 
+  API_KEY=$KEY
   DATA=$(fetchIPData)
   echo "$DATA" | md5sum > $CURRENT_IP_MD5
   echo "$DATA" > $CURRENT_IP_DATA
