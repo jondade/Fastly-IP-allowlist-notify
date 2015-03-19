@@ -94,7 +94,7 @@ function install {
     mkdir -p /var/spool/fastly
   fi
 
-  DATA=fetchIPData
+  DATA=$(fetchIPData)
   echo "$DATA" | md5sum > $CURRENT_IPS_FILE
 
   echo "Initial data for IP whitelisting:"
