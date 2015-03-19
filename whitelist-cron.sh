@@ -128,17 +128,18 @@ function getnum () {
 }
 
 function trim_sum_data () {
-  echo $1 | sed -e 's/^\([A-Za-z0-9]\+\)\s.*/\1/' | echo
+  echo $1 | sed -e 's/^\([A-Za-z0-9]\+\)\s.*/\1/'
 }
 
 function run {
   # We don't need to keep the actual data. Lets save disk space and just keep MD5s.
-  OLD_MD5=`cat "$CURRENT_IPS_FILE"`
+  OLD_MD5=$( trim_sum_data $(cat $CURRENT_IP_MD5) )
   NEW_DATA=$(fetchIPData)
 
-  NEW_MD5=$(echo $NEW_DATA | md5sum)
+  NEW_MD5=$( trim_sum_data $(echo $NEW_DATA | md5sum ) )
 
-  if [ "$(trim_sum_data($OLD_MD5))" == "$(trim_sum_data($NEW_MD5))" ]; then
+  #if [ "$(trim_sum_data $OLD_MD5 )" == "$(trim_sum_data $NEW_MD5 )" ]; then
+  if [ "$OLD_MD5" == "$NEW_MD5" ]; then
     echo "No ip changes."
     exit 0;
   else
