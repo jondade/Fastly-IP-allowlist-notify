@@ -33,17 +33,6 @@ API_KEY=""
 EMAIL_RECIPIENTS=""
 
 #
-# Changelog
-# 0.0.1
-#   J Dade
-#   Created first version to start testing.
-#   Todo:
-#     1: Curl request and diff for changes.
-#     2: Mail for noitification of a change.
-#     3: Create install function which can add the cron job and 
-#         modify the script's options
-#     4: Make notification modular / plugable for alternate methods
-#
 # No user serviceable parts after this point. Any changes are at the
 # editors own risk. No support is offered.
 #
@@ -73,10 +62,11 @@ function install {
     exit 9
   fi
 
-  # Duplicate this script into /sbin/fastly-ips.sh and set permissions
-  cat "$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")" > /sbin/fastly-ips.sh
-  chown 0:0 /sbin/fastly-ips.sh
-  chmod 700 /sbin/fastly-ips.sh
+  # Duplicate this script into SCRIPTNAME and set permissions
+  cp "$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")"  ${SCRIPTNAME}
+  # owning by root and accessible only by root as it contains the api key.
+  chown 0:0 ${SCRIPTNAME}
+  chmod 700 ${SCRIPTNAME}
 
   # Set up some vars from random to make sure the Fastly API is not smashed all at once.
   # by default this runs once a week.
@@ -87,20 +77,20 @@ function install {
   # Need to check the key for validity (?) and
   # ensure the addresses are valid.
 
-  sed -i -e "s/API_KEY=\"\"/API_KEY=\"$KEY\"/" -e "s/EMAIL_RECIPIENTS=\"\"/EMAIL_RECIPIENTS=\"$ADDRESSES\"/" /sbin/fastly-ips.sh
-  echo "$minute $hour * * $day /sbin/fastly-ips.sh -r" >> /etc/crontab
+  sed -i -e "s/API_KEY=\"\"/API_KEY=\"${KEY}\"/" -e "s/EMAIL_RECIPIENTS=\"\"/EMAIL_RECIPIENTS=\"${ADDRESSES}\"/" ${SCRIPTNAME}
+  echo "$minute $hour * * $day ${SCRIPTNAME} -r" >> /etc/crontab
 
-  if [ ! -e /var/spool/fastly ]; then
-    mkdir -p /var/spool/fastly
+  if [ ! -e $(dirname ${SCRIPTNAME}) ]; then
+    mkdir -p $(dirname ${SCRIPTNAME})
   fi
 
-  API_KEY=$KEY
+  API_KEY=${KEY}
   DATA=$(fetchIPData)
-  echo "$DATA" | md5sum > $CURRENT_IP_MD5
-  echo "$DATA" > $CURRENT_IP_DATA
+  echo "${DATA}" | md5sum > ${CURRENT_IP_MD5}
+  echo "${DATA}" > ${CURRENT_IP_DATA}
 
   echo "Initial data for IP whitelisting:"
-  echo "$DATA"
+  echo "${DATA}"
   echo
   echo "Mailing recipients first data to test."
 
@@ -113,12 +103,12 @@ function install {
 EOM
 )
 
-  echo "$MESSAGE" | mail -E -s 'Fastly whitelist intial set' "$ADDRESSES"
+  echo "${MESSAGE}" | mail -E -s 'Fastly whitelist intial set' "${ADDRESSES}"
 
 }
 
 function fetchIPData () {
-  curl -s https://api.fastly.com/public-ip-list -H "Fastly-Key:$API_KEY"
+  curl -s https://api.fastly.com/public-ip-list -H "Fastly-Key:${API_KEY}"
 }
 
 function getnum () {
@@ -133,35 +123,36 @@ function trim_sum_data () {
 
 function run {
   # We don't need to keep the actual data. Lets save disk space and just keep MD5s.
-  OLD_MD5=$( trim_sum_data $(cat $CURRENT_IP_MD5) )
+  OLD_MD5=$( trim_sum_data $(cat ${CURRENT_IP_MD5}) )
   NEW_DATA=$(fetchIPData)
 
-  NEW_MD5=$( trim_sum_data $(echo $NEW_DATA | md5sum ) )
+  NEW_MD5=$( trim_sum_data $(echo ${NEW_DATA} | md5sum ) )
 
-  #if [ "$(trim_sum_data $OLD_MD5 )" == "$(trim_sum_data $NEW_MD5 )" ]; then
-  if [ "$OLD_MD5" == "$NEW_MD5" ]; then
+  if [ "${OLD_MD5}" == "${NEW_MD5}" ]; then
     echo "No ip changes."
     exit 0;
   else
-    echo $NEW_MD5 > $CURRENT_IP_MD5
-    echo $NEW_DATA > $CURRENT_IP_DATA
+    if [[ ${DEBUG} == "true" ]]; then
+      echo ${NEW_MD5} > ${CURRENT_IP_MD5}
+      echo ${NEW_DATA} > ${CURRENT_IP_DATA}
+    fi
     UPDATED_MESSAGE=$(cat <<-EOM
       The fastly whitelist checksum did not match in the latest check. An update to the whitelisting
       rules may be required.
 
       The lastest json data is:
 
-      $NEW_DATA
+      ${NEW_DATA}
 EOM
 )
-    echo "$UPDATED_MESSAGE" | mail -E -s 'Fastly whitelist updated' "$EMAIL_RECIPIENTS"
+    echo "${UPDATED_MESSAGE}" | mail -E -s 'Fastly whitelist updated' "${EMAIL_RECIPIENTS}"
     exit $?
   fi
 }
 
 function showhelp {
   cat <<OEM
-Usage: $(basename "$(test -L "$0" && readlink "$0" || echo "$0")") <args>
+Usage: $(basename $0) <args>
   Possible arguments are:
     i     install this script.
     r     run the script to verify the MD5 / email recipients of an update.
@@ -178,16 +169,16 @@ function find_command () {
 function read_addresses () {
   loop="true"
   read email
-  list="$email"
-  while ( "$loop" == "true" ); do
+  list="${email}"
+  while ( "${loop}" == "true" ); do
     read email
-    if [ "$email" == "" ]; then
+    if [ "${email}" == "" ]; then
       loop="false";
     else
-      list="$list $email"
+      list="${list} ${email}"
     fi
   done
-  echo "$list"
+  echo "${list}"
 }
 
 #
@@ -196,8 +187,10 @@ function read_addresses () {
 
 # Static variables for reuse later.
 API_URL="https://api.fastly.com/list-all-ips"
+SCRIPTNAME="/usr/local/sbin/fastly-ips.sh"
 CURRENT_IP_MD5="/var/spool/fastly/fastly-IP.md5"
 CURRENT_IP_DATA="/var/spool/fastly/fastly-IP.json"
+DEBUG="false"
 
 if [ "$#" -lt 1 ]; then
   echo "Not enough arguments."
@@ -205,13 +198,16 @@ if [ "$#" -lt 1 ]; then
   exit 1
 fi
 
-while getopts "irh" opt; do
-  case "$opt" in
+while getopts "irvh" opt; do
+  case "${opt}" in
     i)
       install
       ;;
     r)
       run
+      ;;
+    v)
+      DEBUG="true"
       ;;
     h)
       showhelp

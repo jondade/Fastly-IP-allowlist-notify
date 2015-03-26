@@ -4,7 +4,7 @@
 
 This script is a cron script which keeps an MD5 of the last / latest list of IPs that Fastly uses.
 It prediodically will pull a new list and check the MD5 against the stored one. If it has changed, 
-it will mail out to a .
+it will mail out to a list of email recipients. It also stores the data for reference.
 
 ## Requirements
 
@@ -16,7 +16,7 @@ it will mail out to a .
 
 ### Fastly Requirements
 
-* Fastly account with IP list enabled.
+* Fastly account with IP list enabled. You may need to contact [support](mailto:support@fastly.com).
 * Fastly API key found on the account page.
 
 ## Instructions
