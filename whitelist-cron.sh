@@ -108,7 +108,7 @@ EOM
 }
 
 function fetchIPData () {
-  curl -s https://api.fastly.com/public-ip-list -H "Fastly-Key:${API_KEY}"
+  curl -s 'https://api.fastly.com/public-ip-list' -H "Fastly-Key:${API_KEY}"
 }
 
 function getnum () {
@@ -190,8 +190,8 @@ function read_addresses () {
 API_URL="https://api.fastly.com/list-all-ips"
 SCRIPTNAME="/usr/local/sbin/fastly-ips.sh"
 DATA_PATH="/var/spool/fastly"
-CURRENT_IP_MD5="$DATA_PATH/fastly-IP.md5"
-CURRENT_IP_DATA="$DATA_PATH/fastly-IP.json"
+CURRENT_IP_MD5="${DATA_PATH}/fastly-IP.md5"
+CURRENT_IP_DATA="${DATA_PATH}/fastly-IP.json"
 DEBUG="false"
 
 if [[ "$#" -lt 1 ]; then
