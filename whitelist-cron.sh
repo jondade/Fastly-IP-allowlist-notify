@@ -80,8 +80,8 @@ function install {
   sed -i -e "s/API_KEY=\"\"/API_KEY=\"${KEY}\"/" -e "s/EMAIL_RECIPIENTS=\"\"/EMAIL_RECIPIENTS=\"${ADDRESSES}\"/" ${SCRIPTNAME}
   echo "$minute $hour * * $day ${SCRIPTNAME} -r" >> /etc/crontab
 
-  if [ ! -e $(dirname ${SCRIPTNAME}) ]; then
-    mkdir -p $(dirname ${SCRIPTNAME})
+  if [[ ! -e $(dirname ${DATA_PATH}) ]]; then
+    mkdir -p $(dirname ${DATA_PATH})
   fi
 
   API_KEY=${KEY}
@@ -112,7 +112,7 @@ function fetchIPData () {
 }
 
 function getnum () {
-  out=$RANDOM
+  out=${RANDOM}
   let "out %= $1"
   echo $out
 }
@@ -156,7 +156,8 @@ Usage: $(basename $0) <args>
   Possible arguments are:
     i     install this script.
     r     run the script to verify the MD5 / email recipients of an update.
-    h     show this message 
+    h     show this message.
+    v     show debug output.
   N.B. This is a simple bash script, please read it for bug/pull request details.
 OEM
 
@@ -172,7 +173,7 @@ function read_addresses () {
   list="${email}"
   while ( "${loop}" == "true" ); do
     read email
-    if [ "${email}" == "" ]; then
+    if [[ "${email}" == "" ]]; then
       loop="false";
     else
       list="${list} ${email}"
@@ -188,11 +189,12 @@ function read_addresses () {
 # Static variables for reuse later.
 API_URL="https://api.fastly.com/list-all-ips"
 SCRIPTNAME="/usr/local/sbin/fastly-ips.sh"
-CURRENT_IP_MD5="/var/spool/fastly/fastly-IP.md5"
-CURRENT_IP_DATA="/var/spool/fastly/fastly-IP.json"
+DATA_PATH="/var/spool/fastly"
+CURRENT_IP_MD5="$DATA_PATH/fastly-IP.md5"
+CURRENT_IP_DATA="$DATA_PATH/fastly-IP.json"
 DEBUG="false"
 
-if [ "$#" -lt 1 ]; then
+if [[ "$#" -lt 1 ]; then
   echo "Not enough arguments."
   showhelp
   exit 1
@@ -208,6 +210,8 @@ while getopts "irvh" opt; do
       ;;
     v)
       DEBUG="true"
+      set -e
+      set -x
       ;;
     h)
       showhelp
