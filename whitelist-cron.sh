@@ -194,7 +194,7 @@ CURRENT_IP_MD5="${DATA_PATH}/fastly-IP.md5"
 CURRENT_IP_DATA="${DATA_PATH}/fastly-IP.json"
 DEBUG="false"
 
-if [[ "$#" -lt 1 ]; then
+if [[ $# -lt 1 ]; then
   echo "Not enough arguments."
   showhelp
   exit 1
