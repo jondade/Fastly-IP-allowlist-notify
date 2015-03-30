@@ -202,17 +202,17 @@ fi
 
 while getopts "irvh" opt; do
   case "${opt}" in
-    r)
-      run
+    h)
+      showhelp
+      exit 0
       ;;
     v)
       DEBUG="true"
       set -e
       set -x
       ;;
-    h)
-      showhelp
-      exit 0
+    r)
+      run
       ;;
     i)
       install
