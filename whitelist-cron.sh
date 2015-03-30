@@ -80,8 +80,8 @@ function install {
   sed -i -e "s/API_KEY=\"\"/API_KEY=\"${KEY}\"/" -e "s/EMAIL_RECIPIENTS=\"\"/EMAIL_RECIPIENTS=\"${ADDRESSES}\"/" ${SCRIPTNAME}
   echo "$minute $hour * * $day ${SCRIPTNAME} -r" >> /etc/crontab
 
-  if [[ ! -e $(dirname ${DATA_PATH}) ]]; then
-    mkdir -p $(dirname ${DATA_PATH})
+  if [[ ! -e ${DATA_PATH} ]]; then
+    mkdir -p ${DATA_PATH}
   fi
 
   API_KEY=${KEY}
