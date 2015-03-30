@@ -202,9 +202,6 @@ fi
 
 while getopts "irvh" opt; do
   case "${opt}" in
-    i)
-      install
-      ;;
     r)
       run
       ;;
@@ -216,6 +213,9 @@ while getopts "irvh" opt; do
     h)
       showhelp
       exit 0
+      ;;
+    i)
+      install
       ;;
   esac
 done
