@@ -80,8 +80,8 @@ function install {
   sed -i -e "s/API_KEY=\"\"/API_KEY=\"${KEY}\"/" -e "s/EMAIL_RECIPIENTS=\"\"/EMAIL_RECIPIENTS=\"${ADDRESSES}\"/" ${SCRIPTNAME}
   echo "$minute $hour * * $day ${SCRIPTNAME} -r" >> /etc/crontab
 
-  if [[ ! -e $(dirname ${DATA_PATH}) ]]; then
-    mkdir -p $(dirname ${DATA_PATH})
+  if [[ ! -e ${DATA_PATH} ]]; then
+    mkdir -p ${DATA_PATH}
   fi
 
   API_KEY=${KEY}
@@ -108,7 +108,7 @@ EOM
 }
 
 function fetchIPData () {
-  curl -s https://api.fastly.com/public-ip-list -H "Fastly-Key:${API_KEY}"
+  curl -s 'https://api.fastly.com/public-ip-list' -H "Fastly-Key:${API_KEY}"
 }
 
 function getnum () {
@@ -190,11 +190,11 @@ function read_addresses () {
 API_URL="https://api.fastly.com/list-all-ips"
 SCRIPTNAME="/usr/local/sbin/fastly-ips.sh"
 DATA_PATH="/var/spool/fastly"
-CURRENT_IP_MD5="$DATA_PATH/fastly-IP.md5"
-CURRENT_IP_DATA="$DATA_PATH/fastly-IP.json"
+CURRENT_IP_MD5="${DATA_PATH}/fastly-IP.md5"
+CURRENT_IP_DATA="${DATA_PATH}/fastly-IP.json"
 DEBUG="false"
 
-if [[ "$#" -lt 1 ]; then
+if [[ $# -lt 1 ]]; then
   echo "Not enough arguments."
   showhelp
   exit 1
@@ -202,20 +202,20 @@ fi
 
 while getopts "irvh" opt; do
   case "${opt}" in
-    i)
-      install
-      ;;
-    r)
-      run
+    h)
+      showhelp
+      exit 0
       ;;
     v)
       DEBUG="true"
       set -e
       set -x
       ;;
-    h)
-      showhelp
-      exit 0
+    r)
+      run
+      ;;
+    i)
+      install
       ;;
   esac
 done
