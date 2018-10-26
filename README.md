@@ -14,11 +14,6 @@ it will mail out to a list of email recipients. It also stores the data for refe
 * mail(x) - A command line tool for smtp/mail interactions.
 * /etc/mail.rc - This needs to be configured to successfully send email.
 
-### Fastly Requirements
-
-* Fastly account with IP list enabled. You may need to contact [support](mailto:support@fastly.com).
-* Fastly API key found on the account page.
-
 ## Instructions
 
 ### Using Git to get this script
@@ -46,15 +41,14 @@ wget https://github.com/jondade/IP-whitelist-cron/<rest_of_path>
 
 ### Running the install
 
-Then change directory into the folder that was cloned or the location the file was saved. Make sure you have your Fastly API key to hand 
-and a list of email recipients. Then run
+Then change directory into the folder that was cloned or the location the file was saved. Make sure you have a list of email recipients. Then run
 
 ```
 /bin/bash whitelist-cron.sh -i
 ```
 
 This will call the install function and configure the script to run on a weekly basis. It will ask 
-for the necessary details (key and recipients). If you wish to change any of the other default values used, these 
+for the necessary details (recipients). If you wish to change any of the other default values used, these 
 are stored at the top of the script.
 
 ## Support
