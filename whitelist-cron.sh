@@ -13,10 +13,6 @@
 # Stores the list of 'current' IPs in CURRENT_IPS_FILE and uses diff
 # to see if this has changed.
 #
-# Make sure to insert an API key in the variable prior to use. Note
-# that this is in clear text so this file should be accessible to
-# as few people as possible to maintain security
-#
 # If you have any bugs or issues with this script you can find assitance
 # in the fastly community forum at https://community.fastly.com/
 #
@@ -29,7 +25,6 @@
 
 # Configuration variables.
 # Update these as necessary.
-API_KEY=""
 EMAIL_RECIPIENTS=""
 
 #
@@ -40,8 +35,6 @@ EMAIL_RECIPIENTS=""
 
 # This will install the script to the /sbin directory for running.
 function install {
-  echo "Please enter your Fastly API key"
-  read KEY
   echo "Please enter your list of email recipients. One per line. Blank line to finish."
   ADDRESSES=$(read_addresses)
   # Let's make sure required commands can be found is there.
@@ -54,8 +47,8 @@ function install {
   elif ! find_command md5sum -a ! which -s md5; then
     echo "No MD5 tool found. Please install one and retry." >&2
     exit 7
-  elif [ -z "$KEY" -o -z "$ADDRESSES" ]; then
-    echo "Key or email recipients was not valid. Please try again."
+  elif [ -z "$ADDRESSES" ]; then
+    echo "Email recipients is not valid. Please try again."
     exit 8
   elif ! find_command sed; then
     echo "Could not find sed command. Cannot continue. Please install sed or manually install this script." >&2
@@ -64,9 +57,7 @@ function install {
 
   # Duplicate this script into SCRIPTNAME and set permissions
   cp "$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")"  ${SCRIPTNAME}
-  # owning by root and accessible only by root as it contains the api key.
-  chown 0:0 ${SCRIPTNAME}
-  chmod 700 ${SCRIPTNAME}
+  chmod 755 ${SCRIPTNAME}
 
   # Set up some vars from random to make sure the Fastly API is not smashed all at once.
   # by default this runs once a week.
@@ -74,17 +65,15 @@ function install {
   hour=$(getnum 24)
   day=$(getnum 7)
 
-  # Need to check the key for validity (?) and
-  # ensure the addresses are valid.
+  # Need to ensure the addresses are valid.
 
-  sed -i -e "s/API_KEY=\"\"/API_KEY=\"${KEY}\"/" -e "s/EMAIL_RECIPIENTS=\"\"/EMAIL_RECIPIENTS=\"${ADDRESSES}\"/" ${SCRIPTNAME}
+  sed -i -e "s/EMAIL_RECIPIENTS=\"\"/EMAIL_RECIPIENTS=\"${ADDRESSES}\"/" ${SCRIPTNAME}
   echo "$minute $hour * * $day ${SCRIPTNAME} -r" >> /etc/crontab
 
   if [[ ! -e ${DATA_PATH} ]]; then
     mkdir -p ${DATA_PATH}
   fi
 
-  API_KEY=${KEY}
   DATA=$(fetchIPData)
   echo "${DATA}" | md5sum > ${CURRENT_IP_MD5}
   echo "${DATA}" > ${CURRENT_IP_DATA}
@@ -108,7 +97,7 @@ EOM
 }
 
 function fetchIPData () {
-  curl -s 'https://api.fastly.com/public-ip-list' -H "Fastly-Key:${API_KEY}"
+  curl -s 'https://api.fastly.com/public-ip-list'
 }
 
 function getnum () {
