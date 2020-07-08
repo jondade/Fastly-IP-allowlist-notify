@@ -176,7 +176,7 @@ function read_addresses () {
 #
 
 # Static variables for reuse later.
-API_URL="https://api.fastly.com/public-ip-list"
+API_URL="https://api.fastly.com/list-all-ips"
 SCRIPTNAME="/usr/local/sbin/fastly-ips.sh"
 DATA_PATH="/var/spool/fastly"
 CURRENT_IP_MD5="${DATA_PATH}/fastly-IP.md5"
