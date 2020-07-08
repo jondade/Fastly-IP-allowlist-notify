@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Whitelist-cron.sh
+# Allowlist-cron.sh
 # A script which can run as a cron job and notifies if the list
 # of Fastly IPs has changed compared to the previous known list.
 #
@@ -14,10 +14,10 @@
 # to see if this has changed.
 #
 # If you have any bugs or issues with this script you can find assitance
-# in the fastly community forum at https://community.fastly.com/
+# in the Fastly community forum at https://community.fastly.com/
 #
 # If you would like to submit a pull request or patch, please do so at my
-# github repository: http://github.com/jondade/IP-whitelist-cron
+# github repository: http://github.com/jondade/IP-allowlist-cron
 #
 # License: MIT
 # Use of this script is entirely at the user's own risk. No warranty
@@ -78,13 +78,13 @@ function install {
   echo "${DATA}" | md5sum > ${CURRENT_IP_MD5}
   echo "${DATA}" > ${CURRENT_IP_DATA}
 
-  echo "Initial data for IP whitelisting:"
+  echo "Initial data for IP allowlisting:"
   echo "${DATA}"
   echo
   echo "Mailing recipients first data to test."
 
   MESSAGE=$(cat <<-EOM
-      The fastly whitelist IP json data are:
+      The Fastly allowlist IP json data are:
 
       $DATA
 
@@ -92,7 +92,7 @@ function install {
 EOM
 )
 
-  echo "${MESSAGE}" | mail -E -s 'Fastly whitelist intial set' "${ADDRESSES}"
+  echo "${MESSAGE}" | mail -E -s 'Fastly allowlist intial set' "${ADDRESSES}"
 
 }
 
@@ -126,7 +126,7 @@ function run {
       echo ${NEW_DATA} > ${CURRENT_IP_DATA}
     fi
     UPDATED_MESSAGE=$(cat <<-EOM
-      The fastly whitelist checksum did not match in the latest check. An update to the whitelisting
+      The Fastly allowlist checksum did not match in the latest check. An update to the allowlisting
       rules may be required.
 
       The lastest json data is:
@@ -134,7 +134,7 @@ function run {
       ${NEW_DATA}
 EOM
 )
-    echo "${UPDATED_MESSAGE}" | mail -E -s 'Fastly whitelist updated' "${EMAIL_RECIPIENTS}"
+    echo "${UPDATED_MESSAGE}" | mail -E -s 'Fastly allowlist updated' "${EMAIL_RECIPIENTS}"
     exit $?
   fi
 }
@@ -176,7 +176,7 @@ function read_addresses () {
 #
 
 # Static variables for reuse later.
-API_URL="https://api.fastly.com/list-all-ips"
+API_URL="https://api.fastly.com/public-ip-list"
 SCRIPTNAME="/usr/local/sbin/fastly-ips.sh"
 DATA_PATH="/var/spool/fastly"
 CURRENT_IP_MD5="${DATA_PATH}/fastly-IP.md5"

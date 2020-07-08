@@ -1,4 +1,4 @@
-# Fastly IP whitelist mailer cron script
+# Fastly IP allowlist mailer cron script
 
 ## Introduction
 
@@ -26,17 +26,17 @@ for production environments.
 Run the following to clone the respository to your target machine.
 
 ```
-git clone -b <branch_name> https://github.com/jondade/IP-whitelist-cron.git <target_folder_name>
+git clone -b <branch_name> https://github.com/jondade/IP-allowlist-cron.git <target_folder_name>
 ```
 
 ### Using https to get this script
 
 Review the branches on github and choose which you wish to pull down and use. Click into the script 
-'whitelist-cron.sh' and choose the raw view. Note down the URL (or copy it). Then on the machine you 
+'allowlist-cron.sh' and choose the raw view. Note down the URL (or copy it). Then on the machine you 
 wish to install it on.You will need to use a command line tool like curl or wget. Or your browser to save the file.
 
 ```
-wget https://github.com/jondade/IP-whitelist-cron/<rest_of_path>
+wget https://github.com/jondade/IP-allowlist-cron/<rest_of_path>
 ```
 
 ### Running the install
@@ -44,7 +44,7 @@ wget https://github.com/jondade/IP-whitelist-cron/<rest_of_path>
 Then change directory into the folder that was cloned or the location the file was saved. Make sure you have a list of email recipients. Then run
 
 ```
-/bin/bash whitelist-cron.sh -i
+/bin/bash allowlist-cron.sh -i
 ```
 
 This will call the install function and configure the script to run on a weekly basis. It will ask 
