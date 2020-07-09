@@ -17,7 +17,7 @@
 # in the Fastly community forum at https://community.fastly.com/
 #
 # If you would like to submit a pull request or patch, please do so at my
-# github repository: http://github.com/jondade/IP-allowlist-cron
+# github repository: https://github.com/jondade/Fastly-IP-allowlist-notify
 #
 # License: MIT
 # Use of this script is entirely at the user's own risk. No warranty

@@ -26,7 +26,7 @@ for production environments.
 Run the following to clone the respository to your target machine.
 
 ```
-git clone -b <branch_name> https://github.com/jondade/IP-allowlist-cron.git <target_folder_name>
+git clone -b <branch_name> https://github.com/jondade/Fastly-IP-allowlist-notify.git <target_folder_name>
 ```
 
 ### Using https to get this script
@@ -36,7 +36,7 @@ Review the branches on github and choose which you wish to pull down and use. Cl
 wish to install it on.You will need to use a command line tool like curl or wget. Or your browser to save the file.
 
 ```
-wget https://github.com/jondade/IP-allowlist-cron/<rest_of_path>
+wget https://github.com/jondade/Fastly-IP-allowlist-notify/<rest_of_path>
 ```
 
 ### Running the install
